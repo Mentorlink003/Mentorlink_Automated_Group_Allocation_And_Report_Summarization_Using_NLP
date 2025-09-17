@@ -1,12 +1,15 @@
 package com.mentorlink.modules.users;
 
 import com.mentorlink.modules.users.dto.UserResponseDto;
+import com.mentorlink.modules.users.dto.UserUpdateDto;
 import com.mentorlink.modules.users.entity.User;
-import com.mentorlink.modules.users.UserRepository;
+import com.mentorlink.modules.users.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -14,33 +17,44 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
-    @PutMapping("/{id}/profile")
-    public ResponseEntity<UserResponseDto> updateProfile(@PathVariable Long id, @RequestBody UserResponseDto dto) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    // ✅ Get current logged-in user (from JWT)
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> getCurrentUser(Authentication authentication) {
+        return ResponseEntity.ok(userService.getCurrentUser(authentication));
+    }
 
-        user.setRollNumber(dto.getRollNumber());
-        user.setDepartment(dto.getDepartment());
-        user.setYearOfStudy(dto.getYearOfStudy());
-        user.setSkills(dto.getSkills());
-        user.setAchievements(dto.getAchievements());
+    // ✅ Update profile of logged-in user
+    @PutMapping("/me")
+    public ResponseEntity<UserResponseDto> updateUser(
+            Authentication authentication,
+            @RequestBody UserUpdateDto update) {
+        return ResponseEntity.ok(userService.updateUser(authentication, update));
+    }
 
-        user = userRepository.save(user);
+    // ✅ Admin creates a new user
+    @PostMapping
+    public ResponseEntity<UserResponseDto> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(userService.createUser(user));
+    }
 
-        return ResponseEntity.ok(
-                UserResponseDto.builder()
-                        .id(user.getId())
-                        .email(user.getEmail())
-                        .fullName(user.getFullName())
-                        .role(user.getRoles().iterator().next())
-                        .rollNumber(user.getRollNumber())
-                        .department(user.getDepartment())
-                        .yearOfStudy(user.getYearOfStudy())
-                        .skills(user.getSkills())
-                        .achievements(user.getAchievements())
-                        .build()
-        );
+    // ✅ Get user by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<UserResponseDto>> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    // ✅ Get all users
+    @GetMapping
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    // ✅ Delete user by ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,5 @@
 package com.mentorlink.modules.users.service;
 
-import com.mentorlink.common.dto.ApiResponse;
 import com.mentorlink.modules.users.dto.UserResponseDto;
 import com.mentorlink.modules.users.dto.UserUpdateDto;
 import com.mentorlink.modules.users.entity.User;
@@ -14,6 +13,7 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,19 +27,7 @@ public class UserService {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        String role = extractRole(user);
-        return UserResponseDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(role)
-                .rollNumber(user.getRollNumber())
-                .department(user.getDepartment())
-                .yearOfStudy(user.getYearOfStudy())
-                .skills(user.getSkills())
-                .achievements(user.getAchievements())
-                .build();
-
+        return toDto(user);
     }
 
     // ✅ Update current user profile
@@ -55,8 +43,38 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(update.getPassword()));
         }
 
-        userRepository.save(user);
+        user = userRepository.save(user);
+        return toDto(user);
+    }
 
+    // ✅ Create new user (Admin use case)
+    public UserResponseDto createUser(User user) {
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        user = userRepository.save(user);
+        return toDto(user);
+    }
+
+    // ✅ Find user by ID
+    public Optional<UserResponseDto> getUserById(Long id) {
+        return userRepository.findById(id).map(this::toDto);
+    }
+
+    // ✅ Get all users
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    // ✅ Delete user by ID
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    // 🔹 Convert User → DTO
+    private UserResponseDto toDto(User user) {
         String role = extractRole(user);
         return UserResponseDto.builder()
                 .id(user.getId())
@@ -69,31 +87,6 @@ public class UserService {
                 .skills(user.getSkills())
                 .achievements(user.getAchievements())
                 .build();
-
-    }
-
-    // ✅ Create new user (Admin use case)
-    public User createUser(User user) {
-        // Encode password before saving
-        if (user.getPassword() != null && !user.getPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
-        return userRepository.save(user);
-    }
-
-    // ✅ Find user by ID
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
-    }
-
-    // ✅ Get all users
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    // ✅ Delete user by ID
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
     }
 
     // ✅ Extract role safely

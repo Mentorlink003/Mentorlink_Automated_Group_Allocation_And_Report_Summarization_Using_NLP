@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,25 +27,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Public
+                        // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
 
-                        // Student-specific APIs
-                        .requestMatchers("/api/students/**").hasRole("STUDENT")
+                        // User endpoints
+                        .requestMatchers("/api/users/me").authenticated()   // logged-in users can see/update their own profile
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")  // only admin can manage other users
 
-                        // Faculty APIs
+                        // Faculty endpoints
                         .requestMatchers("/api/faculty/**").hasRole("FACULTY")
 
-                        // Project APIs → allow both students & faculty
-                        .requestMatchers("/api/projects/**").hasAnyRole("STUDENT", "FACULTY")
+                        // Projects
+                        .requestMatchers("/api/projects/**").authenticated()
 
-                        // Users → only authenticated (can restrict later if needed)
-                        .requestMatchers("/api/users/**").authenticated()
-
-                        // Everything else
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
