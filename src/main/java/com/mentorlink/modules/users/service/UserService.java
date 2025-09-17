@@ -28,7 +28,18 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         String role = extractRole(user);
-        return new UserResponseDto(user.getId(), user.getEmail(), user.getFullName(), role);
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(role)
+                .rollNumber(user.getRollNumber())
+                .department(user.getDepartment())
+                .yearOfStudy(user.getYearOfStudy())
+                .skills(user.getSkills())
+                .achievements(user.getAchievements())
+                .build();
+
     }
 
     // ✅ Update current user profile
@@ -47,7 +58,18 @@ public class UserService {
         userRepository.save(user);
 
         String role = extractRole(user);
-        return new UserResponseDto(user.getId(), user.getEmail(), user.getFullName(), role);
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(role)
+                .rollNumber(user.getRollNumber())
+                .department(user.getDepartment())
+                .yearOfStudy(user.getYearOfStudy())
+                .skills(user.getSkills())
+                .achievements(user.getAchievements())
+                .build();
+
     }
 
     // ✅ Create new user (Admin use case)

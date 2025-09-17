@@ -30,16 +30,33 @@ public class AuthService {
 
         User user = User.builder()
                 .email(dto.getEmail())
-                .fullName(dto.getFullName())   // ✅ make sure this is included
+                .fullName(dto.getFullName())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .roles(new HashSet<>(Set.of(dto.getRole())))
+                .rollNumber(dto.getRollNumber())
+                .department(dto.getDepartment())
+                .yearOfStudy(dto.getYearOfStudy())
+                .skills(dto.getSkills() != null ? dto.getSkills() : new HashSet<>())
+                .achievements(dto.getAchievements() != null ? dto.getAchievements() : new HashSet<>())
                 .build();
+
 
         user = userRepository.save(user);
 
         return ApiResponse.success(
-                new UserResponseDto(user.getId(), user.getEmail(), user.getFullName(), dto.getRole())
+                UserResponseDto.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .fullName(user.getFullName())
+                        .role(dto.getRole())
+                        .rollNumber(user.getRollNumber())
+                        .department(user.getDepartment())
+                        .yearOfStudy(user.getYearOfStudy())
+                        .skills(user.getSkills())
+                        .achievements(user.getAchievements())
+                        .build()
         );
+
     }
 
 
