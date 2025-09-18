@@ -39,6 +39,7 @@ public class SecurityConfig {
 
                         // Faculty endpoints
                         .requestMatchers("/api/faculty/**").hasRole("FACULTY")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // Projects
                         .requestMatchers("/api/projects/**").authenticated()

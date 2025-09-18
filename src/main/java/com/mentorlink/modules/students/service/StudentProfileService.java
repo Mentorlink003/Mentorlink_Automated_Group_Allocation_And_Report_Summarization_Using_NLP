@@ -1,50 +1,48 @@
 package com.mentorlink.modules.students.service;
 
-import com.mentorlink.modules.students.StudentProfileRepository;
 import com.mentorlink.modules.students.dto.StudentProfileDTO;
 import com.mentorlink.modules.students.entity.StudentProfile;
-import com.mentorlink.modules.users.UserRepository;
-import com.mentorlink.modules.users.entity.User;
+import com.mentorlink.modules.students.StudentProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class StudentProfileService {
 
     private final StudentProfileRepository studentProfileRepository;
-    private final UserRepository userRepository;
 
+    // ✅ Save profile from DTO
     public StudentProfileDTO saveProfile(StudentProfileDTO dto) {
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        StudentProfile profile = studentProfileRepository.findByUserId(dto.getUserId())
-                .orElse(StudentProfile.builder().user(user).build());
-
-        profile.setRollNumber(dto.getRollNumber());
-        profile.setDepartment(dto.getDepartment());
-        profile.setYear(dto.getYear());
-        profile.setSkills(dto.getSkills());
+        StudentProfile profile = StudentProfile.builder()
+                .id(dto.getId())
+                .department(dto.getDepartment())
+                .rollNumber(dto.getRollNumber())
+                .yearOfStudy(dto.getYearOfStudy())
+                .build();
 
         StudentProfile saved = studentProfileRepository.save(profile);
-
-        dto.setId(saved.getId());
-        return dto;
+        return convertToDTO(saved);
     }
 
+    // ✅ Convert entity -> DTO
+    public StudentProfileDTO convertToDTO(StudentProfile profile) {
+        return StudentProfileDTO.builder()
+                .id(profile.getId())
+                .userId(profile.getUser() != null ? profile.getUser().getId() : null)
+                .department(profile.getDepartment())
+                .rollNumber(profile.getRollNumber())
+                .yearOfStudy(profile.getYearOfStudy())
+                .build();
+    }
+
+    // ✅ FIX: Get profile by userId
     public StudentProfileDTO getProfile(Long userId) {
-        StudentProfile profile = studentProfileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Profile not found"));
-
-        StudentProfileDTO dto = new StudentProfileDTO();
-        dto.setId(profile.getId());
-        dto.setUserId(profile.getUser().getId());
-        dto.setRollNumber(profile.getRollNumber());
-        dto.setDepartment(profile.getDepartment());
-        dto.setYear(profile.getYear());
-        dto.setSkills(profile.getSkills());
-
-        return dto;
+        return studentProfileRepository.findByUserId(userId)
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new RuntimeException("Profile not found for userId: " + userId));
     }
 }

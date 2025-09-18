@@ -20,6 +20,6 @@ public class StudentProfileController {
 
     @GetMapping("/profile/{userId}")
     public ResponseEntity<StudentProfileDTO> getProfile(@PathVariable Long userId) {
-        return ResponseEntity.ok(studentProfileService.getProfile(userId));
+        return ResponseEntity.ok(studentProfileService.getProfile(userId));  // ✅ FIXED
     }
 }

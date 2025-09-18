@@ -22,13 +22,14 @@ public class FacultyProfile {
     private String department;
     private String expertise;
 
-    @Column(name = "current_load", nullable = false)
-    private Integer currentLoad = 0;
+    @Builder.Default
+    private int currentLoad = 0;
 
-    @Column(name = "max_groups", nullable = false)
-    private Integer maxGroups = 3;
+    @Builder.Default
+    private int maxGroups = 3;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    // ✅ Each faculty profile belongs to one User
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 }

@@ -6,7 +6,6 @@ import com.mentorlink.modules.users.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,39 +21,21 @@ public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
-    private String title;
-
-    @Column(length = 2000)
-    private String description;
-
-    private String domain;
-
-    private String techStack;
-
-    private String status;
-
-    @Column(nullable = false)
-    private Integer progress = 0;
-
-    // optional mentor FK (faculty_profiles)
-    @ManyToOne
-    @JoinColumn(name = "mentor_id")
-    private FacultyProfile mentor;
-
-    // optional one-to-one project_group (if you use groups table)
     @OneToOne
-    @JoinColumn(name = "group_id", unique = true)
+    @JoinColumn(name = "group_id")
     private Group group;
 
-    // join token for students to join: short code
-    @Column(name = "join_token", unique = true)
+    private String title;
+    private String description;
+    private String domain;
+    private String techStack;
+    private String status;
+    private int progress;
+
+    @Column(unique = true, nullable = false)
     private String joinToken;
 
-    // students participating in project
+    // ✅ Students in project
     @ManyToMany
     @JoinTable(
             name = "project_students",
@@ -63,4 +44,9 @@ public class Project {
     )
     @Builder.Default
     private Set<User> students = new HashSet<>();
+
+    // ✅ Mentor (faculty profile, not user directly)
+    @ManyToOne
+    @JoinColumn(name = "mentor_id")
+    private FacultyProfile mentor;
 }
