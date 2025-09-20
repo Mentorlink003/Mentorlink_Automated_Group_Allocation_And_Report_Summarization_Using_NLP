@@ -10,10 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -65,7 +65,7 @@ public class UserService {
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // ✅ Delete user by ID
@@ -73,29 +73,29 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    // 🔹 Convert User → DTO with role-specific mapping
+    // 🔹 Convert User → DTO
     private UserResponseDto toDto(User user) {
         String role = extractRole(user);
 
-        UserResponseDto.UserResponseDtoBuilder builder = UserResponseDto.builder()
+        List<String> skills = user.getSkills() == null
+                ? List.of()
+                : new ArrayList<>(user.getSkills());
+
+        List<String> achievements = user.getAchievements() == null
+                ? List.of()
+                : new ArrayList<>(user.getAchievements());
+
+        return UserResponseDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
-                .role(role);
-
-        if ("STUDENT".equalsIgnoreCase(role)) {
-            builder.rollNumber(user.getRollNumber())
-                    .department(user.getDepartment())
-                    .yearOfStudy(user.getYearOfStudy())
-                    .skills(user.getSkills())
-                    .achievements(user.getAchievements());
-        } else if ("FACULTY".equalsIgnoreCase(role)) {
-            // For now just include department for faculty
-            builder.department(user.getDepartment());
-            // later you can add FacultyProfileDto mapping if needed
-        }
-
-        return builder.build();
+                .role(role)
+                .rollNumber(user.getRollNumber())
+                .department(user.getDepartment())
+                .yearOfStudy(user.getYearOfStudy())   // Integer type
+                .skills(skills)
+                .achievements(achievements)
+                .build();
     }
 
     // ✅ Extract role safely
