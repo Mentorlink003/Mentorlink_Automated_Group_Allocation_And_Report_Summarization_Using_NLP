@@ -1,15 +1,11 @@
-package com.mentorlink.modules.students;
+// src/main/java/com/mentorlink/modules/students/repository/StudentProfileRepository.java
+package com.mentorlink.modules.students.repository;
 
 import com.mentorlink.modules.students.entity.StudentProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
-
     Optional<StudentProfile> findByUserId(Long userId);
-
-    boolean existsByRollNumber(String rollNumber);
 }

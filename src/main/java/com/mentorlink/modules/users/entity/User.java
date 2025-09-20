@@ -1,6 +1,7 @@
 package com.mentorlink.modules.users.entity;
 
 import com.mentorlink.modules.faculty.entity.FacultyProfile;
+import com.mentorlink.modules.students.entity.StudentProfile;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,27 +30,32 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    // ✅ Roles
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
+    @Builder.Default
     private Set<String> roles = new HashSet<>();
 
-    // student-specific
-    private String rollNumber;
-    private String department;
-    private Integer yearOfStudy;
-
+    // ✅ Skills
     @ElementCollection
     @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "skill")
+    @Builder.Default
     private Set<String> skills = new HashSet<>();
 
+    // ✅ Achievements
     @ElementCollection
     @CollectionTable(name = "user_achievements", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "achievement")
+    @Builder.Default
     private Set<String> achievements = new HashSet<>();
 
-    // ✅ Faculty profile (only if faculty)
+    // ✅ Student Profile
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private StudentProfile studentProfile;
+
+    // ✅ Faculty Profile
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private FacultyProfile facultyProfile;
 }

@@ -1,4 +1,6 @@
+// src/main/java/com/mentorlink/modules/users/UserRepository.java
 package com.mentorlink.modules.users;
+
 import com.mentorlink.modules.users.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

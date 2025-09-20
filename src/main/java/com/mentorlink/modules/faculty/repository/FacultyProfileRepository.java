@@ -1,3 +1,4 @@
+// src/main/java/com/mentorlink/modules/faculty/repository/FacultyProfileRepository.java
 package com.mentorlink.modules.faculty.repository;
 
 import com.mentorlink.modules.faculty.entity.FacultyProfile;

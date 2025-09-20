@@ -1,3 +1,4 @@
+// src/main/java/com/mentorlink/modules/faculty/entity/FacultyProfile.java
 package com.mentorlink.modules.faculty.entity;
 
 import com.mentorlink.modules.users.entity.User;
@@ -28,7 +29,6 @@ public class FacultyProfile {
     @Builder.Default
     private int maxGroups = 3;
 
-    // ✅ Each faculty profile belongs to one User
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;

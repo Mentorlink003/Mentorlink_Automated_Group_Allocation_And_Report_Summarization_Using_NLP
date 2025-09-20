@@ -1,16 +1,15 @@
+// src/main/java/com/mentorlink/modules/students/dto/StudentProfileDTO.java
 package com.mentorlink.modules.students.dto;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class StudentProfileDTO {
-
     private Long id;
     private Long userId;
-    private String department;
     private String rollNumber;
-    private String yearOfStudy;   // ✅ Correct field name
+    private String department;
+    private Integer yearOfStudy;
 }

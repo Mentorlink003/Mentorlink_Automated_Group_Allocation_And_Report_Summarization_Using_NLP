@@ -1,3 +1,4 @@
+// src/main/java/com/mentorlink/modules/students/controller/StudentProfileController.java
 package com.mentorlink.modules.students.controller;
 
 import com.mentorlink.modules.students.dto.StudentProfileDTO;
@@ -20,6 +21,6 @@ public class StudentProfileController {
 
     @GetMapping("/profile/{userId}")
     public ResponseEntity<StudentProfileDTO> getProfile(@PathVariable Long userId) {
-        return ResponseEntity.ok(studentProfileService.getProfile(userId));  // ✅ FIXED
+        return ResponseEntity.ok(studentProfileService.getProfile(userId));
     }
 }

@@ -1,69 +1,53 @@
+// src/main/java/com/mentorlink/modules/auth/controller/AuthController.java
 package com.mentorlink.modules.auth.controller;
 
 import com.mentorlink.common.dto.ApiResponse;
-import com.mentorlink.modules.auth.dto.LoginRequest;
-import com.mentorlink.modules.auth.dto.RegisterRequest;
+import com.mentorlink.modules.auth.dto.*;
 import com.mentorlink.modules.auth.service.AuthService;
-import com.mentorlink.security.jwt.JwtTokenProvider;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
 import com.mentorlink.modules.users.dto.UserResponseDto;
 import com.mentorlink.modules.users.dto.UserUpdateDto;
 import com.mentorlink.modules.users.service.UserService;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
     private final UserService userService;
 
-
-    // ✅ Register endpoint
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponseDto>> register(@RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    @PostMapping("/register/student")
+    public ResponseEntity<ApiResponse<UserResponseDto>> registerStudent(@RequestBody RegisterStudentRequest request) {
+        return ResponseEntity.ok(authService.registerStudent(request));
     }
 
-    // ✅ Login endpoint
+    @PostMapping("/register/faculty")
+    public ResponseEntity<ApiResponse<UserResponseDto>> registerFaculty(@RequestBody RegisterFacultyRequest request) {
+        return ResponseEntity.ok(authService.registerFaculty(request));
+    }
+
+    @PostMapping("/register/admin")
+    public ResponseEntity<ApiResponse<UserResponseDto>> registerAdmin(@RequestBody RegisterAdminRequest request) {
+        return ResponseEntity.ok(authService.registerAdmin(request));
+    }
+
+
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest loginRequest) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-        );
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        // Extract role(s)
-        List<String> roles = auth.getAuthorities()
-                .stream()
-                .map(a -> a.getAuthority().replace("ROLE_", ""))
-                .toList();
-
-        String token = jwtTokenProvider.generate(auth.getName(), roles);
-
-        return ResponseEntity.ok(ApiResponse.success(token));
+    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequest req) {
+        return ResponseEntity.ok(authService.login(req));
     }
-    // NEW: get current user
+
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponseDto>> me(Authentication authentication) {
-        UserResponseDto dto = userService.getCurrentUser(authentication);
-        return ResponseEntity.ok(ApiResponse.success(dto));
+        return ResponseEntity.ok(ApiResponse.success(userService.getCurrentUser(authentication)));
     }
 
-    // NEW: update current user (name and/or password)
     @PutMapping("/update")
-    public ResponseEntity<ApiResponse<UserResponseDto>> update(Authentication authentication,
-                                                               @RequestBody UserUpdateDto updateDto) {
-        UserResponseDto updated = userService.updateUser(authentication, updateDto);
-        return ResponseEntity.ok(ApiResponse.success(updated));
+    public ResponseEntity<ApiResponse<UserResponseDto>> update(Authentication authentication, @RequestBody UserUpdateDto update) {
+        return ResponseEntity.ok(ApiResponse.success(userService.updateUser(authentication, update)));
     }
 }

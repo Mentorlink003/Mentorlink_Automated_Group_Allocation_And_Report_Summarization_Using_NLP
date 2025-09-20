@@ -10,10 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,15 +47,6 @@ public class UserService {
         return toDto(user);
     }
 
-    // ✅ Create new user (Admin use case)
-    public UserResponseDto createUser(User user) {
-        if (user.getPassword() != null && !user.getPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
-        user = userRepository.save(user);
-        return toDto(user);
-    }
-
     // ✅ Find user by ID
     public Optional<UserResponseDto> getUserById(Long id) {
         return userRepository.findById(id).map(this::toDto);
@@ -65,7 +56,7 @@ public class UserService {
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::toDto)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     // ✅ Delete user by ID
@@ -77,26 +68,34 @@ public class UserService {
     private UserResponseDto toDto(User user) {
         String role = extractRole(user);
 
-        List<String> skills = user.getSkills() == null
-                ? List.of()
-                : new ArrayList<>(user.getSkills());
-
-        List<String> achievements = user.getAchievements() == null
-                ? List.of()
-                : new ArrayList<>(user.getAchievements());
-
-        return UserResponseDto.builder()
+        UserResponseDto.UserResponseDtoBuilder builder = UserResponseDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(role)
-                .rollNumber(user.getRollNumber())
-                .department(user.getDepartment())
-                .yearOfStudy(user.getYearOfStudy())   // Integer type
-                .skills(skills)
-                .achievements(achievements)
-                .build();
+                .skills(user.getSkills() != null ? List.copyOf(user.getSkills()) : List.of())
+                .achievements(user.getAchievements() != null ? List.copyOf(user.getAchievements()) : List.of());
+
+        // 🔹 If Student → pull from StudentProfile
+        if ("STUDENT".equals(role) && user.getStudentProfile() != null) {
+            builder.rollNumber(user.getStudentProfile().getRollNumber());
+            builder.department(user.getStudentProfile().getDepartment());
+            try {
+                builder.yearOfStudy(Integer.valueOf(user.getStudentProfile().getYearOfStudy()));
+            } catch (NumberFormatException e) {
+                builder.yearOfStudy(null);
+            }
+        }
+
+        // 🔹 If Faculty → pull from FacultyProfile
+        if ("FACULTY".equals(role) && user.getFacultyProfile() != null) {
+            builder.department(user.getFacultyProfile().getDepartment());
+        }
+
+        // 🔹 If Admin → no extra details
+        return builder.build();
     }
+
 
     // ✅ Extract role safely
     private String extractRole(User user) {
