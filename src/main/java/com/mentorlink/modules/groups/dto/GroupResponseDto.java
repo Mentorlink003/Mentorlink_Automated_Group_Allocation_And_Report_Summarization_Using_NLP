@@ -1,18 +1,18 @@
 package com.mentorlink.modules.groups.dto;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Builder
 public class GroupResponseDto {
     private Long id;
     private String name;
-    private List<String> students; // list of student emails/names
-    private String faculty;        // faculty name
-    private String projectTitle;   // if assigned
+    private Long projectId;
+    private String joinToken;
+    private String status;
+    private List<String> studentNames;
+    private Long facultyUserId;
 }

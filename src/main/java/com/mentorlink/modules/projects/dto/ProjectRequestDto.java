@@ -8,5 +8,5 @@ public class ProjectRequestDto {
     private String description;
     private String domain;
     private String techStack;
-    private Long mentorId; // optional at creation
+    private Long groupId; // ✅ optional, if project should be linked to group
 }

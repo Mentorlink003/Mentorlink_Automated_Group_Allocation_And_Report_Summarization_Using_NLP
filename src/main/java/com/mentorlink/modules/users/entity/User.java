@@ -4,9 +4,12 @@ import com.mentorlink.modules.faculty.entity.FacultyProfile;
 import com.mentorlink.modules.students.entity.StudentProfile;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -15,7 +18,7 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,4 +61,26 @@ public class User {
     // ✅ Faculty Profile
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private FacultyProfile facultyProfile;
+
+    // -------------------------
+    // 🔐 UserDetails overrides
+    // -------------------------
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(r -> new SimpleGrantedAuthority("ROLE_" + r)) // prefix with ROLE_
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getUsername() {
+        return email; // we log in with email
+    }
+
+    @Override public String getPassword() { return password; }
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
 }

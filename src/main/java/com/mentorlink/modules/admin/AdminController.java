@@ -1,8 +1,9 @@
 package com.mentorlink.modules.admin;
 
+import com.mentorlink.common.dto.ApiResponse;
 import com.mentorlink.modules.faculty.entity.FacultyProfile;
 import com.mentorlink.modules.faculty.repository.FacultyProfileRepository;
-import com.mentorlink.modules.projects.ProjectRepository;
+import com.mentorlink.modules.projects.repository.ProjectRepository;
 import com.mentorlink.modules.projects.entity.Project;
 import com.mentorlink.modules.users.UserRepository;
 import com.mentorlink.modules.users.entity.User;
@@ -19,33 +20,32 @@ public class AdminController {
     private final UserRepository userRepository;
     private final FacultyProfileRepository facultyProfileRepository;
 
-    // ✅ Assign faculty to project
+    // ✅ Assign faculty (as mentor) to project
     @PostMapping("/projects/{projectId}/assign/{facultyId}")
-    public ResponseEntity<String> assignFacultyToProject(
+    public ResponseEntity<ApiResponse<String>> assignFacultyToProject(
             @PathVariable Long projectId,
             @PathVariable Long facultyId
     ) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
-        User faculty = userRepository.findById(facultyId)
+        User facultyUser = userRepository.findById(facultyId)
                 .orElseThrow(() -> new RuntimeException("Faculty not found"));
 
-        if (!faculty.getRoles().contains("FACULTY")) {
+        if (!facultyUser.getRoles().contains("FACULTY")) {
             throw new RuntimeException("User is not a faculty");
         }
 
-        if (faculty.getFacultyProfile() == null) {
+        FacultyProfile profile = facultyUser.getFacultyProfile();
+        if (profile == null) {
             throw new RuntimeException("Faculty profile not created");
         }
-
-        FacultyProfile profile = faculty.getFacultyProfile();
 
         if (profile.getCurrentLoad() >= profile.getMaxGroups()) {
             throw new RuntimeException("Faculty already at max group load");
         }
 
-        // assign faculty to project
+        // ✅ assign faculty as project mentor
         project.setMentor(profile);
         projectRepository.save(project);
 
@@ -53,6 +53,8 @@ public class AdminController {
         profile.setCurrentLoad(profile.getCurrentLoad() + 1);
         facultyProfileRepository.save(profile);
 
-        return ResponseEntity.ok("Faculty assigned successfully to project: " + project.getTitle());
+        return ResponseEntity.ok(ApiResponse.success(
+                "Faculty assigned successfully to project: " + project.getTitle()
+        ));
     }
 }
