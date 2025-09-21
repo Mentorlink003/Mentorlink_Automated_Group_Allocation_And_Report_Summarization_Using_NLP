@@ -54,13 +54,13 @@ public class AuthController {
         );
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        // Extract role(s)
+        // ✅ Keep full authorities (ROLE_ADMIN, ROLE_FACULTY, ROLE_STUDENT)
         List<String> roles = auth.getAuthorities()
                 .stream()
-                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .map(a -> a.getAuthority()) // no replace()
                 .toList();
 
-        // ✅ Generate JWT
+        // ✅ Generate JWT with full ROLE_ prefix
         String token = jwtTokenProvider.generate(auth.getName(), roles);
 
         return ResponseEntity.ok(ApiResponse.success(token));
