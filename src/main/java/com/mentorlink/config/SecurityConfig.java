@@ -1,7 +1,7 @@
+// src/main/java/com/mentorlink/config/SecurityConfig.java
 package com.mentorlink.config;
 
 import com.mentorlink.security.jwt.JwtAuthFilter;
-import com.mentorlink.modules.users.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,33 +23,32 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final UserDetailsService customUserDetailsService; // injected by name
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Public endpoints
+                        // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
 
-                        // ✅ User-related
+                        // User endpoints
                         .requestMatchers("/api/users/me").authenticated()
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
 
-                        // ✅ Faculty/Admin
+                        // Faculty endpoints
                         .requestMatchers("/api/faculty/**").hasRole("FACULTY")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // ✅ Projects & Groups
+                        // Projects & Groups
                         .requestMatchers("/api/projects/**").authenticated()
                         .requestMatchers("/api/groups/**").authenticated()
 
-                        // ✅ Everything else
+                        // Any other request
                         .anyRequest().authenticated()
                 )
-                // ✅ Stateless session (for JWT)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

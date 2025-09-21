@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
+@Table(name = "projects")
 @Getter
 @Setter
 @Builder
@@ -22,11 +23,12 @@ public class Project {
     private String domain;
     private String techStack;
 
-    // ✅ Each project belongs to one group
-    @OneToOne(mappedBy = "project")
+    // ✅ One project has exactly one group
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Group group;
 
-    // ✅ Mentor (faculty)
-    @ManyToOne
+    // ✅ Faculty mentor assigned
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mentor_id")
     private FacultyProfile mentor;
 }
