@@ -164,16 +164,6 @@ A Flask-based microservice recommends the best faculty for a project using:
 - Microservices with Docker  
 - Cloud deployment  
 
----
-
-## 👨‍💻 Contributors
-
-- Abhishek — Recommender System  
-- Adarsh — Backend Developer  
-- You — API Design & System Architecture  
-
----
-
 ## 🏁 License
 
 MIT License
