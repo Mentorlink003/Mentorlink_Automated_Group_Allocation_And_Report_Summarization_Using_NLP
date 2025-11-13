@@ -8,6 +8,7 @@ This backend provides secure REST APIs for **students, faculty, and administrato
 
 ---
 
+
 ## 📚 Table of Contents
 
 - Overview
