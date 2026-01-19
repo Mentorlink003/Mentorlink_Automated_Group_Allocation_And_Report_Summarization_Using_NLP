@@ -136,6 +136,8 @@ mvn spring-boot:run
 ```
 
 ---
+<img width="364" height="269" alt="image" src="https://github.com/user-attachments/assets/cdd77ca7-3909-4beb-8f8a-946277630e7f" />
+
 
 ## 🧪 Testing with Postman
 
