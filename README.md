@@ -136,20 +136,34 @@ mvn spring-boot:run
 ```
 
 ---
-<img width="364" height="269" alt="image" src="https://github.com/user-attachments/assets/cdd77ca7-3909-4beb-8f8a-946277630e7f" />
+
 
 
 ## 🧪 Testing with Postman
 
 The backend APIs can be tested using an included Postman collection:
 - Registration
+  ---
+  <img width="411" height="270" alt="image" src="https://github.com/user-attachments/assets/b15ef6eb-7c1d-4ea5-bfb4-b4ddd7128587" />
+
+<img width="364" height="269" alt="image" src="https://github.com/user-attachments/assets/cdd77ca7-3909-4beb-8f8a-946277630e7f" />
+---
 - Login
+  ---
+  <img width="594" height="194" alt="image" src="https://github.com/user-attachments/assets/8c9a5bb6-68eb-4505-aa52-8bcca8906103" />
+---
 - Token usage
 - Project creation
+  ---
+<img width="410" height="485" alt="image" src="https://github.com/user-attachments/assets/13614521-1c26-473b-ae76-b22cf1d1de78" />
+<img width="495" height="494" alt="image" src="https://github.com/user-attachments/assets/91d0580e-f688-4ba2-b7f0-6e74ffa7ba4f" />
+
+  ---
 - Group join via token
 - Faculty assignment
 
 ---
+
 
 ## 🧬 Recommender System (Python)
 
