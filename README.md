@@ -1,100 +1,152 @@
-# 🧠 MentorLink Backend
 
+# 🧠 MentorLink Backend
 ### 🚀 Intelligent Project Mentorship Management System
 
-The **MentorLink Backend** is a **Spring Boot + MySQL + JWT** powered application that manages the complete workflow of student–faculty project mentorship — from registration and authentication to project creation, group formation, and faculty assignment.
+The **MentorLink Backend** is a secure, scalable, and intelligent backend system built using **Spring Boot**, **MySQL**, and **JWT authentication**, designed to manage the complete lifecycle of student–faculty project mentorship in academic institutions.
 
-This backend provides secure REST APIs for **students, faculty, and administrators**, integrating both traditional database operations and intelligent recommendation modules.
+It automates everything from **user onboarding and authentication** to **project creation, group formation, faculty assignment**, and **AI-powered recommendations**.
 
 ---
 
+## 📌 Why MentorLink?
+
+🎓 Manual project mentoring systems are:
+- Time-consuming  
+- Error-prone  
+- Non-transparent  
+
+💡 **MentorLink solves this** by providing:
+- Role-based secure APIs  
+- Automated workflows  
+- Intelligent NLP-driven recommendations  
+
+---
 
 ## 📚 Table of Contents
 
-- Overview
-- Key Features
-- Tech Stack
-- System Architecture
-- API Modules
-- Database Design
-- Excel → MySQL Integration
-- Authentication Flow
-- Installation & Setup
-- Testing with Postman
-- Recommender System (Python)
-- Future Enhancements
+- 🧠 Overview  
+- ⚙️ Key Features  
+- 🛠 Tech Stack  
+- 🧩 System Architecture  
+- 🧾 API Modules  
+- 🗄 Database Design  
+- 📊 Excel → MySQL Integration  
+- 🔐 Authentication Flow  
+- 🧰 Installation & Setup  
+- 🧪 Testing with Postman  
+- 🧬 Recommender System  
+- 🔮 Future Enhancements  
 
 ---
 
-## 💡 Overview
+## 🧠 Overview
 
-MentorLink aims to simplify and automate the project mentoring process in universities and colleges. It allows students to register, form groups, submit projects, faculty to mentor and evaluate them, and admins to manage the entire ecosystem. The system uses JWT for secure authentication and MySQL for persistent storage.
+MentorLink is built to simplify and digitize the academic project mentoring ecosystem.
+
+### 👥 User Roles
+- **Students** → Form groups, submit projects  
+- **Faculty** → Mentor and evaluate projects  
+- **Admins** → Manage users, projects, and assignments  
+
+Secure access is enforced using **JWT-based authentication**, while **MySQL** ensures reliable and persistent data storage.
 
 ---
 
 ## ⚙️ Key Features
 
-- User management (Student, Faculty, Admin)
-- JWT authentication
-- Project creation and management
-- Group formation with join token
-- Faculty assignment
-- Intelligent recommendation system using NLP
-- Excel → MySQL bulk data upload
-- Clean, RESTful Spring Boot APIs
+- Role-based User Management (Student / Faculty / Admin)  
+- Secure JWT Authentication & Authorization  
+- Project Creation & Lifecycle Management  
+- Group Formation using Join Tokens  
+- Faculty Assignment & Mentorship  
+- AI-based Faculty Recommendation (NLP)  
+- Excel → MySQL Bulk Data Upload  
+- Clean & RESTful APIs  
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Backend:** Spring Boot (Java 17), Maven
-- **Database:** MySQL
-- **Security:** Spring Security + JWT
-- **ORM:** Hibernate / JPA
-- **Recommender:** Python (Sentence Transformers + Cosine Similarity)
-- **Data Handling:** Pandas & SQLAlchemy
+| Layer | Technology |
+|-----|-----------|
+| Backend | Spring Boot (Java 17) |
+| Security | Spring Security + JWT |
+| Database | MySQL |
+| ORM | Hibernate / JPA |
+| Recommender | Python (Sentence Transformers) |
+| Data Handling | Pandas + SQLAlchemy |
+| API Testing | Postman |
 
 ---
 
 ## 🧩 System Architecture
 
 ```
-Frontend (Flutter/React)
+Frontend (Flutter / React)
           │
           ▼
    Spring Boot Backend
           │
           ▼
-        MySQL
+        MySQL Database
           │
           ▼
-Python Recommender Engine
+ Python NLP Recommender (Flask)
 ```
 
 ---
 
-## 🧾 Database Design
+## 🧾 API Modules
 
-Core tables include:
-- students  
-- faculty  
-- admins  
-- projects  
-- groups  
+### 🔐 Authentication Module
+- Student / Faculty / Admin Registration
+- Login & JWT Generation
 
-Relational mapping is handled with Hibernate/JPA.
+### 📁 Project Module
+- Create Projects
+- View & Manage Projects
+
+### 👥 Group Module
+- Create Groups
+- Join Groups via Token
+- Manage Group Members
+
+### 🎓 Faculty Module
+- Faculty Allocation
+- Mentor Assignment
+
+### 🤖 Recommender Module
+- NLP-based Faculty Recommendation
+- Skill & Domain Matching
+
+---
+
+## 🗄 Database Design
+
+Core tables:
+- students
+- faculty
+- admins
+- projects
+- groups
+
+Relational mapping handled via Hibernate/JPA.
 
 ---
 
 ## 📊 Excel → MySQL Integration
 
-Using Python automation:
 ```
-Excel (.xlsx) → Pandas DataFrame → SQLAlchemy → MySQL
+Excel (.xlsx)
+   ↓
+Pandas DataFrame
+   ↓
+SQLAlchemy
+   ↓
+MySQL
 ```
 
-Example code:
-
+### Example Code
 ```python
 df = pd.read_excel("students_data.xlsx")
 engine = create_engine("mysql+mysqlconnector://root:pwd@localhost/mentorlink")
@@ -106,22 +158,22 @@ df.to_sql("students", con=engine, if_exists="append", index=False)
 ## 🔐 Authentication Flow
 
 1. User logs in  
-2. Server returns a JWT  
-3. JWT required in `Authorization: Bearer <token>` for protected APIs  
-4. Token validated via Spring Security filters  
+2. Server generates JWT  
+3. Client sends token in header  
+   Authorization: Bearer <token>  
+4. Spring Security validates token  
 
 ---
 
 ## 🧰 Installation & Setup
 
-### 1. Clone the repository
+### Clone Repository
 ```bash
 git clone https://github.com/yourusername/mentorlink-backend.git
 cd mentorlink-backend
 ```
 
-### 2. Configure database
-Modify `application.properties`:
+### Configure Database
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/mentorlink
 spring.datasource.username=root
@@ -129,7 +181,7 @@ spring.datasource.password=yourpassword
 spring.jpa.hibernate.ddl-auto=update
 ```
 
-### 3. Build and run
+### Build & Run
 ```bash
 mvn clean install
 mvn spring-boot:run
@@ -137,49 +189,36 @@ mvn spring-boot:run
 
 ---
 
-
-
 ## 🧪 Testing with Postman
 
-The backend APIs can be tested using an included Postman collection:
-- Registration
-  ---
-  <img width="411" height="270" alt="image" src="https://github.com/user-attachments/assets/b15ef6eb-7c1d-4ea5-bfb4-b4ddd7128587" />
-
-<img width="364" height="269" alt="image" src="https://github.com/user-attachments/assets/cdd77ca7-3909-4beb-8f8a-946277630e7f" />
----
-- Login
-  ---
-  <img width="594" height="194" alt="image" src="https://github.com/user-attachments/assets/8c9a5bb6-68eb-4505-aa52-8bcca8906103" />
----
-- Token usage
-- Project creation
-  ---
-<img width="410" height="485" alt="image" src="https://github.com/user-attachments/assets/13614521-1c26-473b-ae76-b22cf1d1de78" />
-<img width="495" height="494" alt="image" src="https://github.com/user-attachments/assets/91d0580e-f688-4ba2-b7f0-6e74ffa7ba4f" />
-
-  ---
-- Group join via token
-- Faculty assignment
+- Registration APIs  
+- Login & JWT  
+- Token Authorization  
+- Project Creation  
+- Group Join via Token  
+- Faculty Assignment  
 
 ---
 
+## 🧬 Recommender System
 
-## 🧬 Recommender System (Python)
+A Flask-based microservice using:
+- Sentence Transformers  
+- NLP Embeddings  
+- Cosine Similarity  
 
-A Flask-based microservice recommends the best faculty for a project using:
-- Sentence Transformers
-- Cosine Similarity
-- NLP embeddings
+Used to match project requirements with faculty expertise.
 
 ---
 
 ## 🔮 Future Enhancements
 
-- Email notifications  
-- Advanced analytics dashboard  
-- Microservices with Docker  
-- Cloud deployment  
+- Email & Notification System  
+- Analytics Dashboard  
+- Dockerized Microservices  
+- Cloud Deployment  
+
+---
 
 ## 🏁 License
 
