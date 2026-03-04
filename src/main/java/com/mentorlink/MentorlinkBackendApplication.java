@@ -9,5 +9,4 @@ public class MentorlinkBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(MentorlinkBackendApplication.class, args);
     }
-
 }
