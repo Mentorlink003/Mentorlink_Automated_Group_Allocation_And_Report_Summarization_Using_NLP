@@ -23,6 +23,9 @@ public class Project {
     private String domain;
     private String techStack;
 
+    @Builder.Default
+    private int progress = 0; // 0–100%
+
     // ✅ One project has exactly one group
     @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Group group;

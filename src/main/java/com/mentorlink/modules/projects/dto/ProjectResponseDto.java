@@ -11,5 +11,6 @@ public class ProjectResponseDto {
     private String description;
     private String domain;
     private String techStack;
-    private Long groupId; // ✅ linked group
+    private int progress;
+    private Long groupId;
 }

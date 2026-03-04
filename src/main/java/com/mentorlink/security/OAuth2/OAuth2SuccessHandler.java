@@ -2,17 +2,19 @@ package com.mentorlink.security.OAuth2;
 
 import com.mentorlink.modules.users.UserRepository;
 import com.mentorlink.modules.users.entity.User;
+import com.mentorlink.common.debug.AgentDebugLog;
 import com.mentorlink.security.OAuth2.DomainEmailValidator;
 import com.mentorlink.security.jwt.JwtTokenProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,13 +22,27 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
-@RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
-    private final JwtTokenProvider jwt;
-    private final UserRepository userRepository;
-    private final DomainEmailValidator domainEmailValidator;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtTokenProvider jwt;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private DomainEmailValidator domainEmailValidator;
+
+    // Break SecurityConfig <-> OAuth2SuccessHandler cycle by not depending on PasswordEncoder bean from SecurityConfig.
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    // #region agent log
+    @PostConstruct
+    void __agentInit() {
+        AgentDebugLog.log("99a5a7", "pre-fix", "H1", "OAuth2SuccessHandler.java:__agentInit",
+                "OAuth2SuccessHandler initialized", "{\"hasJwt\":true,\"hasUserRepo\":true,\"hasDomainValidator\":true,\"passwordEncoder\":\"localBCrypt\"}");
+    }
+    // #endregion
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -56,7 +72,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         // Find or create local User linked to this GitHub account
         User user = userRepository.findByEmail(email)
-                .orElseGet(() -> createOAuthStudentUser(email, attributes));
+                .orElseGet(() -> createOAuthUser(email, attributes));
 
         // Build ROLE_ authorities list for JWT
         List<String> roles = (user.getRoles() == null || user.getRoles().isEmpty())
@@ -72,9 +88,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     }
 
     /**
-     * Create a new local User for a GitHub-authenticated student.
+     * Create a new local User for an OAuth2-authenticated user (default STUDENT; Admin/Faculty set via Excel upload).
      */
-    private User createOAuthStudentUser(String email, Map<String, Object> attributes) {
+    private User createOAuthUser(String email, Map<String, Object> attributes) {
         Object nameAttr = attributes.get("name");
         Object loginAttr = attributes.get("login");
 
@@ -82,14 +98,13 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 ? nameAttr.toString()
                 : (loginAttr != null ? loginAttr.toString() : email);
 
-        // Random, unusable password – login is always via GitHub OAuth
+        // Random, unusable password – login is always via OAuth2 (no local login)
         String randomPassword = "oauth2-user-" + UUID.randomUUID();
 
-        User user = User.builder()
-                .email(email)
-                .fullName(fullName)
-                .password(passwordEncoder.encode(randomPassword))
-                .build();
+        User user = new User();
+        user.setEmail(email);
+        user.setFullName(fullName);
+        user.setPassword(passwordEncoder.encode(randomPassword));
 
         user.getRoles().add("STUDENT");
 

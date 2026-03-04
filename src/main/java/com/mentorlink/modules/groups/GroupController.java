@@ -2,6 +2,9 @@
 package com.mentorlink.modules.groups;
 
 import com.mentorlink.common.dto.ApiResponse;
+import com.mentorlink.modules.faculty.dto.RequestMentorshipDto;
+import com.mentorlink.modules.faculty.entity.FacultyMentorshipRequest;
+import com.mentorlink.modules.faculty.service.FacultyMentorshipRequestService;
 import com.mentorlink.modules.groups.dto.GroupRequestDto;
 import com.mentorlink.modules.groups.dto.GroupResponseDto;
 import com.mentorlink.modules.groups.service.GroupService;
@@ -19,6 +22,7 @@ public class GroupController {
 
     private final GroupService groupService;
     private final UserRepository userRepository;
+    private final FacultyMentorshipRequestService mentorshipRequestService;
 
     // ✅ Create group (leader is the logged-in student)
     @PostMapping("/create")
@@ -42,5 +46,17 @@ public class GroupController {
 
         GroupResponseDto group = groupService.joinGroup(token, student.getId());
         return ResponseEntity.ok(ApiResponse.success(group));
+    }
+
+    @PostMapping("/{groupId}/request-faculty")
+    public ResponseEntity<ApiResponse<FacultyMentorshipRequest>> requestFaculty(
+            @PathVariable Long groupId,
+            @RequestBody RequestMentorshipDto dto,
+            Authentication auth) {
+        dto.setGroupId(groupId);
+        return ResponseEntity.ok(ApiResponse.success(
+                mentorshipRequestService.requestMentorship(
+                        groupId, dto.getFacultyId(), dto.getProjectTopic(),
+                        dto.getProjectDescription(), dto.getProjectId())));
     }
 }

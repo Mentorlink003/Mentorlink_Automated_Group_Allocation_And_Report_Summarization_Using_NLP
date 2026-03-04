@@ -19,4 +19,8 @@ public class Deadline {
 
     @Column(nullable = false)
     private Instant dueDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DeadlineType type;
 }

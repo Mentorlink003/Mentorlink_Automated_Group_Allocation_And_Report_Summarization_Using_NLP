@@ -62,4 +62,9 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore   // 🔑 prevent recursion
     private FacultyProfile facultyProfile;
+
+    // Explicit getter so that code using getRoles() compiles even if Lombok processing is unavailable
+    public Set<String> getRoles() {
+        return roles;
+    }
 }

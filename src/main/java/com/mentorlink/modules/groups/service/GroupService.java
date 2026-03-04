@@ -23,16 +23,26 @@ public class GroupService {
 
     // ✅ Create a group with leader + project
     public GroupResponseDto createGroup(GroupRequestDto dto, Long leaderId) {
-        // prevent duplicate group for same project
-        if (groupRepository.existsByProjectId(dto.getProjectId())) {
-            throw new RuntimeException("This project already has a group. Use the join token instead.");
-        }
-
         User leader = userRepository.findById(leaderId)
                 .orElseThrow(() -> new RuntimeException("Leader (student) not found"));
 
-        Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+        Project project;
+        if (dto.getProjectId() != null) {
+            if (groupRepository.existsByProjectId(dto.getProjectId())) {
+                throw new RuntimeException("This project already has a group. Use the join token instead.");
+            }
+            project = projectRepository.findById(dto.getProjectId())
+                    .orElseThrow(() -> new RuntimeException("Project not found"));
+        } else {
+            project = Project.builder()
+                    .title(dto.getProjectTitle() != null ? dto.getProjectTitle() : "New Project")
+                    .description(dto.getProjectDescription() != null ? dto.getProjectDescription() : "")
+                    .domain("General")
+                    .techStack("TBD")
+                    .progress(0)
+                    .build();
+            project = projectRepository.save(project);
+        }
 
         Group group = Group.builder()
                 .name(dto.getName())

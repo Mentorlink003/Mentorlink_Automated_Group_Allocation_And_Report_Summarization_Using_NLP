@@ -11,6 +11,3 @@ public class MentorlinkBackendApplication {
     }
 
 }
-//hello//
-
-//hello/

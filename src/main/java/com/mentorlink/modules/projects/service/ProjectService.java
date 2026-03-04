@@ -1,5 +1,6 @@
 package com.mentorlink.modules.projects.service;
 
+import com.mentorlink.modules.faculty.repository.FacultyProfileRepository;
 import com.mentorlink.modules.projects.repository.ProjectRepository;
 import com.mentorlink.modules.projects.dto.ProjectRequestDto;
 import com.mentorlink.modules.projects.dto.ProjectResponseDto;
@@ -14,7 +15,21 @@ import org.springframework.stereotype.Service;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
-    private final GroupRepository groupRepository; // ✅ inject group repo to fetch groups
+    private final GroupRepository groupRepository;
+    private final FacultyProfileRepository facultyProfileRepository;
+
+    public Project updateProgress(Long projectId, int progress, String facultyEmail) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+        if (project.getMentor() == null) {
+            throw new RuntimeException("Project has no mentor assigned");
+        }
+        if (!project.getMentor().getEmail().equals(facultyEmail)) {
+            throw new RuntimeException("Only assigned faculty can update progress");
+        }
+        project.setProgress(progress);
+        return projectRepository.save(project);
+    }
 
     public ProjectResponseDto createProject(ProjectRequestDto dto) {
         Project project = Project.builder()
@@ -39,6 +54,7 @@ public class ProjectService {
                 .description(project.getDescription())
                 .domain(project.getDomain())
                 .techStack(project.getTechStack())
+                .progress(project.getProgress())
                 .groupId(project.getGroup() != null ? project.getGroup().getId() : null)
                 .build();
     }

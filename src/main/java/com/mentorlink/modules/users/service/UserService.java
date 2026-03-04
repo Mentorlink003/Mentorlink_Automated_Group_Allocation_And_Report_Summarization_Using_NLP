@@ -42,6 +42,9 @@ public class UserService {
         if (update.getPassword() != null && !update.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(update.getPassword()));
         }
+        if (update.getSkills() != null) {
+            user.setSkills(new java.util.HashSet<>(update.getSkills()));
+        }
 
         user = userRepository.save(user);
         return toDto(user);

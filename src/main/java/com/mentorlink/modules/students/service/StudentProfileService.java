@@ -47,7 +47,7 @@ public class StudentProfileService {
     }
 
     public StudentProfileDTO getProfile(Long userId) {
-        StudentProfile p = studentProfileRepository.findByUserId(userId)
+        StudentProfile p = studentProfileRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
         return StudentProfileDTO.builder()
                 .id(p.getId())

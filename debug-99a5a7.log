@@ -1,0 +1,2 @@
+{"sessionId":"99a5a7","runId":"pre-fix","hypothesisId":"H1","location":"OAuth2SuccessHandler.java:__agentInit","message":"OAuth2SuccessHandler initialized","data":{"hasJwt":true,"hasUserRepo":true,"hasDomainValidator":true,"passwordEncoder":"localBCrypt"},"timestamp":1772609744651}
+{"sessionId":"99a5a7","runId":"pre-fix","hypothesisId":"H1","location":"SecurityConfig.java:__agentInit","message":"SecurityConfig initialized","data":{"hasJwtFilter":true,"hasUserDetailsService":true,"hasOAuth2SuccessHandler":true},"timestamp":1772609744657}

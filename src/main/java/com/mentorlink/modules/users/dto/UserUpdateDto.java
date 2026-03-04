@@ -7,4 +7,5 @@ import lombok.Data;
 public class UserUpdateDto {
     private String fullName;
     private String password;
+    private java.util.List<String> skills; // languages, tools, frameworks, databases
 }
