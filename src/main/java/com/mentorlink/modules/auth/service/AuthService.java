@@ -12,6 +12,7 @@ import com.mentorlink.modules.faculty.entity.FacultyProfile;
 import com.mentorlink.modules.faculty.repository.FacultyProfileRepository;
 import com.mentorlink.modules.students.entity.StudentProfile;
 import com.mentorlink.modules.students.repository.StudentProfileRepository;
+import com.mentorlink.service.EmailNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class AuthService {
     private final FacultyProfileRepository facultyProfileRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailNotificationService emailNotificationService;
 
     // ✅ Register Student
     public ApiResponse<UserResponseDto> registerStudent(RegisterStudentRequest dto) {
@@ -47,7 +49,10 @@ public class AuthService {
                 .department(dto.getDepartment())
                 .yearOfStudy(dto.getYearOfStudy())
                 .build();
-        studentProfileRepository.save(profile);
+        profile = studentProfileRepository.save(profile);
+
+        // Non-blocking welcome email
+        emailNotificationService.sendRegistrationWelcome(user.getEmail(), "STUDENT");
 
         return ApiResponse.success(UserResponseDto.builder()
                 .id(user.getId())
@@ -84,7 +89,10 @@ public class AuthService {
                 .expertise(dto.getExpertise())
                 .maxGroups(dto.getMaxGroups())
                 .build();
-        facultyProfileRepository.save(profile);
+        profile = facultyProfileRepository.save(profile);
+
+        // Non-blocking welcome email
+        emailNotificationService.sendRegistrationWelcome(user.getEmail(), "FACULTY");
 
         return ApiResponse.success(UserResponseDto.builder()
                 .id(user.getId())
@@ -110,6 +118,9 @@ public class AuthService {
                 .build();
         user.getRoles().add("ADMIN");
         user = userRepository.save(user);
+
+        // Non-blocking welcome email
+        emailNotificationService.sendRegistrationWelcome(user.getEmail(), "ADMIN");
 
         return ApiResponse.success(UserResponseDto.builder()
                 .id(user.getId())

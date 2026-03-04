@@ -3,8 +3,10 @@ package com.mentorlink.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
@@ -12,9 +14,17 @@ import java.util.List;
 @Component
 public class JwtTokenProvider {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
+    private final long validityInMs;
 
-    private final long validityInMs = 86400000; // 24 hours
+    public JwtTokenProvider(
+            @Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.expiration-ms:86400000}") long validityInMs
+    ) {
+        // HS256 requires a 256-bit (32+ chars) secret
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.validityInMs = validityInMs;
+    }
 
     // ✅ Generate JWT with roles (with ROLE_ prefix intact)
     public String generate(String username, List<String> roles) {

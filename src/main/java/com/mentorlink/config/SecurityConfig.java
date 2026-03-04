@@ -1,9 +1,6 @@
 package com.mentorlink.config;
 
-import com.mentorlink.common.debug.AgentDebugLog;
 import com.mentorlink.security.jwt.JwtAuthFilter;
-import com.mentorlink.security.OAuth2.OAuth2SuccessHandler;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,17 +26,6 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService customUserDetailsService;
 
-    @Autowired
-    private OAuth2SuccessHandler oAuth2SuccessHandler;
-
-    // #region agent log
-    @PostConstruct
-    void __agentInit() {
-        AgentDebugLog.log("99a5a7", "pre-fix", "H1", "SecurityConfig.java:__agentInit",
-                "SecurityConfig initialized", "{\"hasJwtFilter\":true,\"hasUserDetailsService\":true,\"hasOAuth2SuccessHandler\":true}");
-    }
-    // #endregion
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -53,8 +39,6 @@ public class SecurityConfig {
                         // 🔓 Public endpoints
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/oauth2/**",
-                                "/login/**",
                                 "/actuator/**"
                         ).permitAll()
 
@@ -85,11 +69,6 @@ public class SecurityConfig {
 
                         // Everything else requires authentication
                         .anyRequest().authenticated()
-                )
-
-                // 🔥 Enable OAuth2 Login (GitHub)
-                .oauth2Login(oauth -> oauth
-                        .successHandler(oAuth2SuccessHandler)
                 )
 
                 // Stateless session (VERY IMPORTANT)

@@ -1,5 +1,6 @@
 package com.mentorlink.service;
 
+import com.mentorlink.common.debug.AgentDebugLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,29 @@ public class EmailNotificationService {
 
     @Value("${spring.mail.username:}")
     private String fromEmail;
+
+    public void sendRegistrationWelcome(String toEmail, String role) {
+        // #region agent log
+        AgentDebugLog.log("99a5a7", "welcome-email", "H3",
+                "EmailNotificationService.java:sendRegistrationWelcome",
+                "Attempting welcome email", "{\"mailConfigured\":" + (fromEmail != null && !fromEmail.isBlank()) + ",\"role\":\"" + (role == null ? "" : role) + "\"}");
+        // #endregion
+
+        if (fromEmail == null || fromEmail.isBlank()) {
+            log.warn("Mail not configured, skipping welcome email");
+            return;
+        }
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromEmail);
+            msg.setTo(toEmail);
+            msg.setSubject("Welcome to MentorLink");
+            msg.setText("You have successfully registered on the MentorLink portal as " + role + ".\n\nYou can now login and start using the portal.");
+            mailSender.send(msg);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email", e);
+        }
+    }
 
     public void sendDeadlineReminder(String toEmail, String deadlineName, String dueDate) {
         if (fromEmail == null || fromEmail.isBlank()) {

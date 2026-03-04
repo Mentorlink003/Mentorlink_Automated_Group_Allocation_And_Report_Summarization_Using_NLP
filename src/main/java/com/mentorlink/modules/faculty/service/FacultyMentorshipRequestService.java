@@ -1,5 +1,6 @@
 package com.mentorlink.modules.faculty.service;
 
+import com.mentorlink.common.debug.AgentDebugLog;
 import com.mentorlink.modules.faculty.entity.FacultyMentorshipRequest;
 import com.mentorlink.modules.faculty.entity.FacultyProfile;
 import com.mentorlink.modules.faculty.repository.FacultyMentorshipRequestRepository;
@@ -33,6 +34,19 @@ public class FacultyMentorshipRequestService {
     @Transactional
     public FacultyMentorshipRequest requestMentorship(Long groupId, Long facultyId, String projectTopic,
                                                      String projectDescription, Long projectId) {
+        // #region agent log
+        AgentDebugLog.log("99a5a7", "group-not-found", "H1",
+                "FacultyMentorshipRequestService.java:requestMentorship",
+                "Requesting mentorship", "{\"groupId\":" + groupId + ",\"facultyId\":" + facultyId + ",\"projectId\":" + projectId + "}");
+        // #endregion
+
+        boolean exists = groupRepository.existsById(groupId);
+        // #region agent log
+        AgentDebugLog.log("99a5a7", "group-not-found", "H1",
+                "FacultyMentorshipRequestService.java:requestMentorship",
+                "Group existsById result", "{\"groupId\":" + groupId + ",\"exists\":" + exists + "}");
+        // #endregion
+
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
         FacultyProfile faculty = facultyProfileRepository.findById(facultyId)

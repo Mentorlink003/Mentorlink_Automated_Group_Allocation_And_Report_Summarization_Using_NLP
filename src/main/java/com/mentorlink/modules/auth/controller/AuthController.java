@@ -49,6 +49,7 @@ public class AuthController {
     // ✅ Login and generate JWT
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequest loginRequest) {
+        // generic login (any role)
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
         );
@@ -64,6 +65,38 @@ public class AuthController {
         String token = jwtTokenProvider.generate(auth.getName(), roles);
 
         return ResponseEntity.ok(ApiResponse.success(token));
+    }
+
+    @PostMapping("/login/student")
+    public ResponseEntity<ApiResponse<String>> loginStudent(@RequestBody LoginRequest req) {
+        return ResponseEntity.ok(ApiResponse.success(loginWithRole(req, "ROLE_STUDENT")));
+    }
+
+    @PostMapping("/login/faculty")
+    public ResponseEntity<ApiResponse<String>> loginFaculty(@RequestBody LoginRequest req) {
+        return ResponseEntity.ok(ApiResponse.success(loginWithRole(req, "ROLE_FACULTY")));
+    }
+
+    @PostMapping("/login/admin")
+    public ResponseEntity<ApiResponse<String>> loginAdmin(@RequestBody LoginRequest req) {
+        return ResponseEntity.ok(ApiResponse.success(loginWithRole(req, "ROLE_ADMIN")));
+    }
+
+    private String loginWithRole(LoginRequest loginRequest, String requiredRole) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        List<String> roles = auth.getAuthorities()
+                .stream()
+                .map(a -> a.getAuthority())
+                .toList();
+
+        if (!roles.contains(requiredRole)) {
+            throw new RuntimeException("Invalid role login");
+        }
+        return jwtTokenProvider.generate(auth.getName(), roles);
     }
 
     // ✅ Get current logged-in user
