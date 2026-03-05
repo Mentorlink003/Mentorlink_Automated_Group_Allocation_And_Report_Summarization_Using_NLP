@@ -8,7 +8,8 @@ import com.mentorlink.modules.deadlines.entity.DeadlineType;
 import com.mentorlink.modules.deadlines.service.DeadlineService;
 import com.mentorlink.modules.faculty.entity.FacultyProfile;
 import com.mentorlink.modules.faculty.repository.FacultyProfileRepository;
-import com.mentorlink.modules.groups.entity.Group;
+import com.mentorlink.modules.admin.dto.AutoGroupResultDto;
+import com.mentorlink.modules.groups.repository.GroupRepository;
 import com.mentorlink.modules.projects.entity.Project;
 import com.mentorlink.modules.projects.repository.ProjectRepository;
 import com.mentorlink.service.RecommenderService;
@@ -29,6 +30,7 @@ import java.util.Map;
 public class AdminController {
 
     private final ProjectRepository projectRepository;
+    private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final FacultyProfileRepository facultyProfileRepository;
     private final AdminExcelService adminExcelService;
@@ -66,15 +68,41 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(deadlineService.getAll()));
     }
 
-    // ========== Auto-Assignment ==========
-    @PostMapping("/auto-group")
-    public ResponseEntity<ApiResponse<List<Group>>> autoGroup() {
-        return ResponseEntity.ok(ApiResponse.success(recommenderService.autoGroupStudents()));
+    // ========== Leftover Students (before auto-group) ==========
+    @GetMapping("/students/without-group")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> studentsWithoutGroup() {
+        List<User> students = userRepository.findAll().stream()
+                .filter(u -> u.getRoles().contains("STUDENT"))
+                .filter(s -> groupRepository.findByMembersContaining(s).isEmpty())
+                .toList();
+        List<Map<String, Object>> list = students.stream()
+                .map(u -> {
+                    Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("id", u.getId());
+                    m.put("email", u.getEmail());
+                    m.put("fullName", u.getFullName());
+                    m.put("skills", u.getSkills());
+                    var sp = u.getStudentProfile();
+                    m.put("rollNumber", sp != null ? sp.getRollNumber() : null);
+                    m.put("department", sp != null ? sp.getDepartment() : null);
+                    m.put("yearOfStudy", sp != null ? sp.getYearOfStudy() : null);
+                    return m;
+                })
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(list));
     }
 
-    @PostMapping("/auto-assign-faculty")
-    public ResponseEntity<ApiResponse<Integer>> autoAssignFaculty() {
-        return ResponseEntity.ok(ApiResponse.success(recommenderService.autoAssignFaculty()));
+    // ========== Auto Group Formation (single flow after deadline) ==========
+    /**
+     * Auto-group leftover students from Excel + auto-assign faculty with remaining slots.
+     * Admin uploads Excel with leftover student emails/roll numbers.
+     * Uses cosine similarity for grouping; assigns faculty (max 3 groups per faculty).
+     * Faculty with filled slots are closed – no one can request them as mentor.
+     */
+    @PostMapping("/auto-group/from-excel")
+    public ResponseEntity<ApiResponse<AutoGroupResultDto>> autoGroupFromExcel(
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(ApiResponse.success(recommenderService.autoGroupFromExcel(file)));
     }
 
     // ========== Manual Assignment ==========
@@ -99,7 +127,7 @@ public class AdminController {
         }
 
         if (profile.getCurrentLoad() >= profile.getMaxGroups()) {
-            throw new RuntimeException("Faculty already at max group load");
+            throw new RuntimeException("Faculty slots are full (" + profile.getCurrentLoad() + "/" + profile.getMaxGroups() + "). No access to assign this faculty.");
         }
 
         // ✅ assign faculty as project mentor

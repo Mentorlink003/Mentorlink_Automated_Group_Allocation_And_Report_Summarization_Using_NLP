@@ -28,6 +28,21 @@ public class User {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @Column(name = "profile_picture_url", length = 500)
+    private String profilePictureUrl;
+
+    @Column(name = "contact_number", length = 20)
+    private String contactNumber;
+
+    @Column(length = 1000)
+    private String bio;
+
+    @ElementCollection
+    @CollectionTable(name = "user_interests", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "interest")
+    @Builder.Default
+    private Set<String> interests = new HashSet<>();
+
     @Column(nullable = false)
     @JsonIgnore   // 🔑 don’t expose password in API responses
     private String password;

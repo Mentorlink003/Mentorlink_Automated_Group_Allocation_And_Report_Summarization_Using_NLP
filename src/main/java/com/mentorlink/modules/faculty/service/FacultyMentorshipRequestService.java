@@ -1,6 +1,5 @@
 package com.mentorlink.modules.faculty.service;
 
-import com.mentorlink.common.debug.AgentDebugLog;
 import com.mentorlink.modules.faculty.entity.FacultyMentorshipRequest;
 import com.mentorlink.modules.faculty.entity.FacultyProfile;
 import com.mentorlink.modules.faculty.repository.FacultyMentorshipRequestRepository;
@@ -34,19 +33,6 @@ public class FacultyMentorshipRequestService {
     @Transactional
     public FacultyMentorshipRequest requestMentorship(Long groupId, Long facultyId, String projectTopic,
                                                      String projectDescription, Long projectId) {
-        // #region agent log
-        AgentDebugLog.log("99a5a7", "group-not-found", "H1",
-                "FacultyMentorshipRequestService.java:requestMentorship",
-                "Requesting mentorship", "{\"groupId\":" + groupId + ",\"facultyId\":" + facultyId + ",\"projectId\":" + projectId + "}");
-        // #endregion
-
-        boolean exists = groupRepository.existsById(groupId);
-        // #region agent log
-        AgentDebugLog.log("99a5a7", "group-not-found", "H1",
-                "FacultyMentorshipRequestService.java:requestMentorship",
-                "Group existsById result", "{\"groupId\":" + groupId + ",\"exists\":" + exists + "}");
-        // #endregion
-
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
         FacultyProfile faculty = facultyProfileRepository.findById(facultyId)
@@ -88,6 +74,36 @@ public class FacultyMentorshipRequestService {
                 .requestedAt(Instant.now())
                 .build();
         return requestRepository.save(req);
+    }
+
+    /**
+     * Faculty joins a group as mentor using a mentorJoinToken.
+     */
+    @Transactional
+    public Group joinAsMentorByToken(String mentorToken, String facultyEmail) {
+        FacultyProfile faculty = facultyProfileRepository.findByEmail(facultyEmail)
+                .orElseThrow(() -> new RuntimeException("Faculty not found"));
+        if (faculty.getCurrentLoad() >= faculty.getMaxGroups()) {
+            throw new RuntimeException("Faculty has reached max group limit");
+        }
+
+        Group group = groupRepository.findByMentorJoinToken(mentorToken)
+                .orElseThrow(() -> new RuntimeException("Invalid mentor token"));
+
+        Project project = group.getProject();
+        if (project == null) {
+            throw new RuntimeException("Group has no project linked");
+        }
+        if (project.getMentor() != null) {
+            throw new RuntimeException("Project already has a mentor");
+        }
+
+        project.setMentor(faculty);
+        faculty.setCurrentLoad(faculty.getCurrentLoad() + 1);
+        projectRepository.save(project);
+        facultyProfileRepository.save(faculty);
+
+        return group;
     }
 
     @Transactional

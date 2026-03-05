@@ -46,6 +46,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/me").authenticated()
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
 
+                        // 📋 Profile & Dashboard
+                        .requestMatchers("/api/profile/**").authenticated()
+                        .requestMatchers("/api/dashboard/student").hasRole("STUDENT")
+                        .requestMatchers("/api/dashboard/faculty").hasRole("FACULTY")
+                        .requestMatchers("/api/dashboard/admin").hasRole("ADMIN")
+
+                        // 📁 Serve uploaded files (profile photos, etc.)
+                        .requestMatchers("/api/files/**").authenticated()
+
                         // 👨‍🏫 Faculty endpoints (list is for students too)
                         .requestMatchers("/api/faculty/list").authenticated()
                         .requestMatchers("/api/faculty/**").hasRole("FACULTY")
@@ -62,6 +71,9 @@ public class SecurityConfig {
 
                         // 📄 Submissions
                         .requestMatchers("/api/submissions/**").authenticated()
+
+                        // 🔍 Faculty Recommender (TF-IDF + Cosine Similarity)
+                        .requestMatchers("/api/recommend/**").authenticated()
 
                         // 📢 Notifications & Chat
                         .requestMatchers("/api/notifications/**").authenticated()

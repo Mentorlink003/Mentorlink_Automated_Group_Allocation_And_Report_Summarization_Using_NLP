@@ -34,4 +34,15 @@ public class FileStorageService {
         Files.copy(file.getInputStream(), target);
         return subdir + "/" + filename;
     }
+
+    public void delete(String relativePath) throws IOException {
+        Path target = rootLocation.resolve(relativePath);
+        if (Files.exists(target)) {
+            Files.delete(target);
+        }
+    }
+
+    public Path resolve(String relativePath) {
+        return rootLocation.resolve(relativePath);
+    }
 }

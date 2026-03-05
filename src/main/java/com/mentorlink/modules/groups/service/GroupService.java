@@ -3,13 +3,18 @@ package com.mentorlink.modules.groups.service;
 import com.mentorlink.modules.groups.dto.GroupRequestDto;
 import com.mentorlink.modules.groups.dto.GroupResponseDto;
 import com.mentorlink.modules.groups.entity.Group;
-import com.mentorlink.modules.groups.repository.GroupRepository;
 import com.mentorlink.modules.projects.entity.Project;
+import com.mentorlink.common.exception.ApiException;
+import com.mentorlink.modules.faculty.entity.FacultyProfile;
+import com.mentorlink.modules.faculty.repository.FacultyProfileRepository;
+import com.mentorlink.modules.groups.repository.GroupRepository;
 import com.mentorlink.modules.projects.repository.ProjectRepository;
 import com.mentorlink.modules.users.entity.User;
 import com.mentorlink.modules.users.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -20,25 +25,40 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final FacultyProfileRepository facultyProfileRepository;
 
     // ✅ Create a group with leader + project
     public GroupResponseDto createGroup(GroupRequestDto dto, Long leaderId) {
         User leader = userRepository.findById(leaderId)
-                .orElseThrow(() -> new RuntimeException("Leader (student) not found"));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "NOT_FOUND", "Leader (student) not found"));
 
         Project project;
         if (dto.getProjectId() != null) {
             if (groupRepository.existsByProjectId(dto.getProjectId())) {
-                throw new RuntimeException("This project already has a group. Use the join token instead.");
+                throw new ApiException(HttpStatus.BAD_REQUEST, "CONFLICT", "This project already has a group. Use the join token instead.");
             }
             project = projectRepository.findById(dto.getProjectId())
-                    .orElseThrow(() -> new RuntimeException("Project not found"));
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "NOT_FOUND", "Project not found"));
+            // Update project with projectTitle/projectDescription when provided (so your body values are saved)
+            if (dto.getProjectTitle() != null && !dto.getProjectTitle().isBlank()) {
+                project.setTitle(dto.getProjectTitle());
+            }
+            if (dto.getProjectDescription() != null && !dto.getProjectDescription().isBlank()) {
+                project.setDescription(dto.getProjectDescription());
+            }
+            if (dto.getProjectDomain() != null && !dto.getProjectDomain().isBlank()) {
+                project.setDomain(dto.getProjectDomain());
+            }
+            if (dto.getProjectTechStack() != null && !dto.getProjectTechStack().isBlank()) {
+                project.setTechStack(dto.getProjectTechStack());
+            }
+            project = projectRepository.save(project);
         } else {
             project = Project.builder()
-                    .title(dto.getProjectTitle() != null ? dto.getProjectTitle() : "New Project")
+                    .title(dto.getProjectTitle() != null && !dto.getProjectTitle().isBlank() ? dto.getProjectTitle() : "New Project")
                     .description(dto.getProjectDescription() != null ? dto.getProjectDescription() : "")
-                    .domain("General")
-                    .techStack("TBD")
+                    .domain(dto.getProjectDomain() != null && !dto.getProjectDomain().isBlank() ? dto.getProjectDomain() : "General")
+                    .techStack(dto.getProjectTechStack() != null && !dto.getProjectTechStack().isBlank() ? dto.getProjectTechStack() : "TBD")
                     .progress(0)
                     .build();
             project = projectRepository.save(project);
@@ -49,6 +69,7 @@ public class GroupService {
                 .project(project)
                 .leader(leader)
                 .joinToken(UUID.randomUUID().toString())
+                .mentorJoinToken(UUID.randomUUID().toString())
                 .build();
 
         group.getMembers().add(leader); // ✅ add leader as member
@@ -58,13 +79,29 @@ public class GroupService {
         return mapToResponse(saved);
     }
 
-    // ✅ Join group using token
+    public GroupResponseDto getById(Long id) {
+        Group group = groupRepository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "NOT_FOUND", "Group not found"));
+        return mapToResponse(group);
+    }
+
+    public static final int MAX_GROUP_MEMBERS = 3;
+
+    // ✅ Join group using token (max 3 members per group)
     public GroupResponseDto joinGroup(String token, Long studentId) {
         Group group = groupRepository.findByJoinToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid token"));
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_TOKEN", "Invalid join token"));
+
+        if (group.getMembers().size() >= MAX_GROUP_MEMBERS) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "GROUP_FULL", "Group is full. Maximum " + MAX_GROUP_MEMBERS + " members allowed.");
+        }
 
         User student = userRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "NOT_FOUND", "Student not found"));
+
+        if (group.getMembers().contains(student)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "ALREADY_MEMBER", "You are already a member of this group.");
+        }
 
         group.getMembers().add(student);
         Group saved = groupRepository.save(group);
@@ -72,13 +109,42 @@ public class GroupService {
         return mapToResponse(saved);
     }
 
+    /** Faculty joins group as mentor using mentorJoinToken. No request/approval flow. */
+    @Transactional
+    public Group mentorJoinByToken(String mentorToken, String facultyEmail) {
+        FacultyProfile faculty = facultyProfileRepository.findByEmail(facultyEmail)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "NOT_FOUND", "Faculty not found"));
+        if (faculty.getCurrentLoad() >= faculty.getMaxGroups()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "FACULTY_CLOSED",
+                    "Faculty slots are full (" + faculty.getCurrentLoad() + "/" + faculty.getMaxGroups() + "). No access to join as mentor.");
+        }
+        Group group = groupRepository.findByMentorJoinToken(mentorToken)
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_TOKEN", "Invalid mentor token"));
+        Project project = group.getProject();
+        if (project == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "NO_PROJECT", "Group has no project linked");
+        }
+        if (project.getMentor() != null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "CONFLICT", "Project already has a mentor");
+        }
+        project.setMentor(faculty);
+        faculty.setCurrentLoad(faculty.getCurrentLoad() + 1);
+        projectRepository.save(project);
+        facultyProfileRepository.save(faculty);
+        return group;
+    }
+
     // ✅ Mapper
     private GroupResponseDto mapToResponse(Group group) {
+        Project p = group.getProject();
         return GroupResponseDto.builder()
                 .id(group.getId())
                 .name(group.getName())
                 .joinToken(group.getJoinToken())
-                .projectId(group.getProject().getId())
+                .mentorJoinToken(group.getMentorJoinToken())
+                .projectId(p.getId())
+                .projectTitle(p.getTitle())
+                .projectDescription(p.getDescription())
                 .leaderId(group.getLeader().getId())
                 .memberCount(group.getMembers().size())
                 .build();

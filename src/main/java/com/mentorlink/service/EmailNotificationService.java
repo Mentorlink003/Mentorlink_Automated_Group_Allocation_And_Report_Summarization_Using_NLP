@@ -1,6 +1,5 @@
 package com.mentorlink.service;
 
-import com.mentorlink.common.debug.AgentDebugLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,12 +18,6 @@ public class EmailNotificationService {
     private String fromEmail;
 
     public void sendRegistrationWelcome(String toEmail, String role) {
-        // #region agent log
-        AgentDebugLog.log("99a5a7", "welcome-email", "H3",
-                "EmailNotificationService.java:sendRegistrationWelcome",
-                "Attempting welcome email", "{\"mailConfigured\":" + (fromEmail != null && !fromEmail.isBlank()) + ",\"role\":\"" + (role == null ? "" : role) + "\"}");
-        // #endregion
-
         if (fromEmail == null || fromEmail.isBlank()) {
             log.warn("Mail not configured, skipping welcome email");
             return;

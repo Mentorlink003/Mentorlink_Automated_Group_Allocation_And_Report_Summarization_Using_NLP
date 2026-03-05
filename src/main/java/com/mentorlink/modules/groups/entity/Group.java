@@ -27,6 +27,10 @@ public class Group {
     @Column(name = "join_token", unique = true, nullable = false)
     private String joinToken;
 
+    // Optional token used for faculty to join as mentor
+    @Column(name = "mentor_join_token", unique = true)
+    private String mentorJoinToken;
+
     // ✅ Leader of the group (a student user)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "leader_id", nullable = false)

@@ -5,6 +5,7 @@ import com.mentorlink.modules.projects.dto.ProjectRequestDto;
 import com.mentorlink.modules.projects.dto.ProjectResponseDto;
 import com.mentorlink.modules.projects.entity.Project;
 import com.mentorlink.modules.projects.service.ProjectService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,9 +18,15 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
+    @GetMapping("/{projectId}")
+    public ResponseEntity<ApiResponse<ProjectResponseDto>> getProject(@PathVariable Long projectId) {
+        return ResponseEntity.ok(ApiResponse.success(projectService.getById(projectId)));
+    }
+
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<ProjectResponseDto>> create(@RequestBody ProjectRequestDto dto) {
-        return ResponseEntity.ok(ApiResponse.success(projectService.createProject(dto)));
+    public ResponseEntity<ApiResponse<ProjectResponseDto>> create(@Valid @RequestBody ProjectRequestDto dto,
+                                                                  Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.success(projectService.createProject(dto, auth.getName())));
     }
 
     @PutMapping("/{projectId}/progress")

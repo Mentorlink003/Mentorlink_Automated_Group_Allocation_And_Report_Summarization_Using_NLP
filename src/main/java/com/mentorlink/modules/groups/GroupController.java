@@ -2,10 +2,8 @@
 package com.mentorlink.modules.groups;
 
 import com.mentorlink.common.dto.ApiResponse;
-import com.mentorlink.modules.faculty.dto.RequestMentorshipDto;
-import com.mentorlink.modules.faculty.entity.FacultyMentorshipRequest;
-import com.mentorlink.modules.faculty.service.FacultyMentorshipRequestService;
 import com.mentorlink.modules.groups.dto.GroupRequestDto;
+import jakarta.validation.Valid;
 import com.mentorlink.modules.groups.dto.GroupResponseDto;
 import com.mentorlink.modules.groups.service.GroupService;
 import com.mentorlink.modules.users.UserRepository;
@@ -22,11 +20,15 @@ public class GroupController {
 
     private final GroupService groupService;
     private final UserRepository userRepository;
-    private final FacultyMentorshipRequestService mentorshipRequestService;
+
+    @GetMapping("/{groupId}")
+    public ResponseEntity<ApiResponse<GroupResponseDto>> getGroup(@PathVariable Long groupId) {
+        return ResponseEntity.ok(ApiResponse.success(groupService.getById(groupId)));
+    }
 
     // ✅ Create group (leader is the logged-in student)
     @PostMapping("/create")
-    public ResponseEntity<ApiResponse<GroupResponseDto>> createGroup(@RequestBody GroupRequestDto dto,
+    public ResponseEntity<ApiResponse<GroupResponseDto>> createGroup(@Valid @RequestBody GroupRequestDto dto,
                                                                      Authentication authentication) {
         String email = authentication.getName(); // email comes from JWT
         User leader = userRepository.findByEmail(email)
@@ -48,15 +50,18 @@ public class GroupController {
         return ResponseEntity.ok(ApiResponse.success(group));
     }
 
-    @PostMapping("/{groupId}/request-faculty")
-    public ResponseEntity<ApiResponse<FacultyMentorshipRequest>> requestFaculty(
-            @PathVariable Long groupId,
-            @RequestBody RequestMentorshipDto dto,
-            Authentication auth) {
-        dto.setGroupId(groupId);
-        return ResponseEntity.ok(ApiResponse.success(
-                mentorshipRequestService.requestMentorship(
-                        groupId, dto.getFacultyId(), dto.getProjectTopic(),
-                        dto.getProjectDescription(), dto.getProjectId())));
+    // ✅ Faculty join as mentor using mentor token
+    @PostMapping("/mentor/join/{token}")
+    public ResponseEntity<ApiResponse<GroupResponseDto>> mentorJoin(@PathVariable String token,
+                                                                    Authentication authentication) {
+        String email = authentication.getName();
+        User facultyUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        if (!facultyUser.getRoles().contains("FACULTY")) {
+            throw new RuntimeException("Only faculty can join as mentor");
+        }
+
+        var group = groupService.mentorJoinByToken(token, email);
+        return ResponseEntity.ok(ApiResponse.success(groupService.getById(group.getId())));
     }
 }

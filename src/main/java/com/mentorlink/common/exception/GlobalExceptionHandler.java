@@ -12,6 +12,13 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // ✅ Handle ApiException (e.g. 404, 400)
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ApiResponse<Object>> handleApiException(ApiException ex, HttpServletRequest request) {
+        ApiError error = new ApiError(ex.getCode(), ex.getMessage(), request.getRequestURI());
+        return ResponseEntity.status(ex.getStatus()).body(ApiResponse.error(error));
+    }
+
     // ✅ Handle validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationException(

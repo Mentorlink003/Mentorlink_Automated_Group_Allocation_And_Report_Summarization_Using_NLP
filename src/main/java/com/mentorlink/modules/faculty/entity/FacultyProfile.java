@@ -23,6 +23,15 @@ public class FacultyProfile {
     private String department;
     private String expertise;
 
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(length = 1000)
+    private String bio;
+
+    @Column(name = "profile_picture_url", length = 500)
+    private String profilePictureUrl;
+
     @Builder.Default
     private int currentLoad = 0;
 

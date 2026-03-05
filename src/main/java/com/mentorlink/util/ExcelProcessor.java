@@ -36,6 +36,30 @@ public class ExcelProcessor {
     }
 
     /**
+     * Parse leftover students Excel for auto-group allocation.
+     * Columns: [Email] or [Email, RollNumber]. Either column can identify the student.
+     * Used after group formation deadline: admin uploads list of students who haven't formed groups.
+     */
+    public List<com.mentorlink.util.LeftoverStudentRow> parseLeftoverStudents(MultipartFile file) throws Exception {
+        List<com.mentorlink.util.LeftoverStudentRow> rows = new ArrayList<>();
+        try (InputStream is = file.getInputStream(); Workbook wb = new XSSFWorkbook(is)) {
+            Sheet sheet = wb.getSheetAt(0);
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+                String email = getCellString(row, 0);
+                String rollNumber = getCellString(row, 1);
+                if ((email == null || email.isBlank()) && (rollNumber == null || rollNumber.isBlank())) continue;
+                rows.add(com.mentorlink.util.LeftoverStudentRow.builder()
+                        .email(email != null ? email.trim() : null)
+                        .rollNumber(rollNumber != null ? rollNumber.trim() : null)
+                        .build());
+            }
+        }
+        return rows;
+    }
+
+    /**
      * Parse faculty Excel: columns [Email, FullName, Department, Expertise, MaxGroups]
      */
     public List<FacultyUploadRow> parseFaculty(MultipartFile file) throws Exception {

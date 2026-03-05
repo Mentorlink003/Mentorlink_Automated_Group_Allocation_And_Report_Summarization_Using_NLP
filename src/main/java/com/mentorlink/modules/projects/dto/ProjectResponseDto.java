@@ -13,4 +13,6 @@ public class ProjectResponseDto {
     private String techStack;
     private int progress;
     private Long groupId;
+    private String joinToken;       // for other students to join the group (max 3 members)
+    private String mentorJoinToken; // for faculty to join as mentor
 }

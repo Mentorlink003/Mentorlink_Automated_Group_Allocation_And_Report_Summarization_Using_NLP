@@ -28,4 +28,13 @@ public class StudentProfile {
 
     @Column(name = "year_of_study")
     private Integer yearOfStudy;
+
+    @Column(name = "profile_picture_url", length = 500)
+    private String profilePictureUrl;
+
+    @Column(name = "contact_number", length = 20)
+    private String contactNumber;
+
+    @Column(length = 1000)
+    private String bio;
 }

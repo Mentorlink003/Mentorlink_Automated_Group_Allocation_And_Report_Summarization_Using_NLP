@@ -2,11 +2,13 @@ package com.mentorlink.modules.submissions.entity;
 
 import com.mentorlink.common.auditing.Auditable;
 import com.mentorlink.modules.projects.entity.Project;
+import com.mentorlink.modules.users.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "submissions")
+@Table(name = "submissions",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "category"}))
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
 public class Submission extends Auditable {
@@ -22,5 +24,13 @@ public class Submission extends Auditable {
     @Column(nullable = false)
     private String filePath;
 
-    private String category;
+    @Column(nullable = false, length = 50)
+    private String category; // REPORT, RESEARCH_PAPER, PPT
+
+    @Column(name = "original_filename")
+    private String originalFilename;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "submitted_by_id")
+    private User submittedBy;
 }

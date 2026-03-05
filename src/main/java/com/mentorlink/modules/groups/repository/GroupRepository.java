@@ -11,4 +11,5 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     Optional<Group> findByJoinToken(String joinToken);
     boolean existsByProjectId(Long projectId);
     List<Group> findByMembersContaining(User user);
+    Optional<Group> findByMentorJoinToken(String mentorJoinToken);
 }
