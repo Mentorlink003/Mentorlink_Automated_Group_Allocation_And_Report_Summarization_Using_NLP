@@ -1,6 +1,7 @@
 package com.mentorlink.modules.summarization.dto;
 
 import com.mentorlink.modules.summarization.entity.ReportSummary;
+import com.mentorlink.modules.summarization.entity.ReportSummaryStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,6 +16,8 @@ public class ReportSummaryDto {
     private String reportFilePath;
     private String originalFilename;
     private String generatedSummary;
+    private ReportSummaryStatus status;
+    private String errorMessage;
     private Instant createdAt;
 
     public static ReportSummaryDto from(ReportSummary s) {
@@ -25,6 +28,8 @@ public class ReportSummaryDto {
                 .reportFilePath(s.getReportFilePath())
                 .originalFilename(s.getOriginalFilename())
                 .generatedSummary(s.getGeneratedSummary())
+                .status(s.getStatus() != null ? s.getStatus() : (s.getGeneratedSummary() != null ? ReportSummaryStatus.DONE : ReportSummaryStatus.PENDING))
+                .errorMessage(s.getErrorMessage())
                 .createdAt(s.getCreatedAt())
                 .build();
     }

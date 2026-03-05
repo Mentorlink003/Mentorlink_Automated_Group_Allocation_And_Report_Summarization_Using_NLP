@@ -6,6 +6,7 @@ import com.mentorlink.modules.groups.repository.GroupRepository;
 import com.mentorlink.modules.projects.entity.Project;
 import com.mentorlink.modules.projects.repository.ProjectRepository;
 import com.mentorlink.modules.submissions.dto.SubmissionResponseDto;
+import com.mentorlink.modules.summarization.service.ReportSummarizationService;
 import com.mentorlink.modules.submissions.entity.Submission;
 import com.mentorlink.modules.submissions.entity.SubmissionCategory;
 import com.mentorlink.modules.submissions.repository.SubmissionRepository;
@@ -38,6 +39,7 @@ public class SubmissionService {
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final ReportSummarizationService reportSummarizationService;
 
     /**
      * Student (group member) submits a file. One submission per category per project.
@@ -88,6 +90,15 @@ public class SubmissionService {
                 .submittedBy(submitter)
                 .build();
         submission = submissionRepository.save(submission);
+
+        if ("REPORT".equals(category)) {
+            try {
+                reportSummarizationService.triggerFromSubmission(submission);
+            } catch (Exception e) {
+                org.slf4j.LoggerFactory.getLogger(SubmissionService.class)
+                        .warn("Auto-summarization failed for REPORT upload (project={}): {}", projectId, e.getMessage());
+            }
+        }
 
         return SubmissionResponseDto.from(submission);
     }

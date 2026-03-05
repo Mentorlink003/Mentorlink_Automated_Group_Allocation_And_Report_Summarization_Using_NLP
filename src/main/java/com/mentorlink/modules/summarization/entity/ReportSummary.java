@@ -30,9 +30,17 @@ public class ReportSummary extends Auditable {
     @Column(name = "report_file_path", nullable = false)
     private String reportFilePath;
 
-    @Column(name = "generated_summary", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "generated_summary", columnDefinition = "TEXT")
     private String generatedSummary;
 
     @Column(name = "original_filename")
     private String originalFilename;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private ReportSummaryStatus status = ReportSummaryStatus.PENDING;
+
+    @Column(name = "error_message", length = 1000)
+    private String errorMessage;
 }

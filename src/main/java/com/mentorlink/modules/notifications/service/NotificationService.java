@@ -1,11 +1,13 @@
 package com.mentorlink.modules.notifications.service;
 
+import com.mentorlink.modules.notifications.dto.NotificationDto;
 import com.mentorlink.modules.notifications.entity.Notification;
 import com.mentorlink.modules.notifications.repository.NotificationRepository;
 import com.mentorlink.modules.users.entity.User;
 import com.mentorlink.modules.users.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,15 +18,18 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public Notification create(String userEmail, String message) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return notificationRepository.save(Notification.builder()
+        Notification n = notificationRepository.save(Notification.builder()
                 .user(user)
                 .message(message)
                 .read(false)
                 .build());
+        messagingTemplate.convertAndSend("/topic/notifications/" + user.getId(), NotificationDto.from(n));
+        return n;
     }
 
     public List<Notification> getForUser(String email, int limit) {
